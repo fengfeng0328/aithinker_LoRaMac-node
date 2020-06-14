@@ -183,6 +183,34 @@ $ cmake -DCMAKE_BUILD_TYPE=Release \
 $ make
 ```
 
+**classA** example using LoRa modulation for NucleoL152 platform with SX1276MB1LAS MBED shield
+
+```bash
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_BUILD_TYPE=Release \
+        -DTOOLCHAIN_PREFIX="<replace by toolchain path>" \
+        -DCMAKE_TOOLCHAIN_FILE="../cmake/toolchain-arm-none-eabi.cmake" \
+        -DAPPLICATION="LoRaMac" \
+        -DSUB_PROJECT="classA" \
+        -DCLASSB_ENABLED="ON" \
+        -DACTIVE_REGION="LORAMAC_REGION_EU868" \
+        -DREGION_EU868="ON" \
+        -DREGION_US915="OFF" \
+        -DREGION_CN779="OFF" \
+        -DREGION_EU433="OFF" \
+        -DREGION_AU915="OFF" \
+        -DREGION_AS923="OFF" \
+        -DREGION_CN470="OFF" \
+        -DREGION_KR920="OFF" \
+        -DREGION_IN865="OFF" \
+        -DREGION_RU864="OFF" \
+        -DBOARD="NucleoL152" \
+        -DMBED_RADIO_SHIELD="SX1276MB1LAS" \
+        -DUSE_RADIO_DEBUG="ON" ..
+$ make
+```
+
 #### VSCode
 
 **periodic-uplink-lpp** example for NucleoL476 platform with LR1110MB1DIS MBED shield and using LR1110 pre-provisioned secure-element

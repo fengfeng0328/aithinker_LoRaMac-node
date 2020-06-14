@@ -24,13 +24,13 @@ cmake_minimum_required(VERSION 3.6)
 
 # Allow switching of target platform
 set(BOARD_LIST NAMote72 NucleoL073 NucleoL152 NucleoL476 SAMR34 SKiM880B SKiM980A SKiM881AXL B-L072Z-LRWAN1)
-set(BOARD NucleoL073 CACHE STRING "Default target platform is NucleoL073")
-set_property(CACHE BOARD PROPERTY STRINGS ${BOARD_LIST})
+set(BOARD NucleoL073 CACHE STRING "Default target platform is NucleoL073")	# CACHE是关键字，设置缓存变量，STRING表示缓存值类型是字符串，"Default target platform is NucleoL073"是注释描述
+set_property(CACHE BOARD PROPERTY STRINGS ${BOARD_LIST})					# set_propery-->在给定的作用域内设置一个命名属性（这里作用是指定选用的开发板）
 
 # Allow switching of MBED shields
 set(MBED_RADIO_SHIELD_LIST SX1272MB2DAS SX1276MB1LAS SX1276MB1MAS SX1261MBXBAS SX1262MBXCAS SX1262MBXDAS )
 set(MBED_RADIO_SHIELD SX1261MBXBAS CACHE STRING "Default MBED radio shield is SX1261MBXBAS")
-set_property(CACHE MBED_RADIO_SHIELD PROPERTY STRINGS ${MBED_RADIO_SHIELD_LIST})
+set_property(CACHE MBED_RADIO_SHIELD PROPERTY STRINGS ${MBED_RADIO_SHIELD_LIST})	# 选定芯片型号
 
 # Allow switching of secure-elements
 set(SECURE_ELEMENT_LIST SOFT_SE LR1110_SE)
@@ -40,16 +40,16 @@ set_property(CACHE SECURE_ELEMENT PROPERTY STRINGS ${SECURE_ELEMENT_LIST})
 # Allow switching of Applications
 set(APPLICATION_LIST LoRaMac ping-pong rx-sensi tx-cw )
 set(APPLICATION LoRaMac CACHE STRING "Default Application is LoRaMac")
-set_property(CACHE APPLICATION PROPERTY STRINGS ${APPLICATION_LIST})
+set_property(CACHE APPLICATION PROPERTY STRINGS ${APPLICATION_LIST})	# 选择应用程序
 
 # Switch for USB-Uart support, enable it for some Applications who needs it.
-option(USE_USB_CDC "Use USB-Uart" OFF)
+option(USE_USB_CDC "Use USB-Uart" OFF)		# 选择是否打开串口输出
 
 # Switch for debugger support.
 option(USE_DEBUGGER "Use Debugger" ON)
 
 # Switch for Class B support of LoRaMac.
-option(CLASSB_ENABLED "Class B support of LoRaMac" OFF)
+option(CLASSB_ENABLED "Class B support of LoRaMac" OFF)		# 选择是否支持 Class B 工作模式
 
 #---------------------------------------------------------------------------------------
 # Target Boards
@@ -57,7 +57,7 @@ option(CLASSB_ENABLED "Class B support of LoRaMac" OFF)
 
 if(BOARD STREQUAL NAMote72)
     # Configure toolchain for NAMote72
-    set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/boards/NAMote72/cmsis/arm-gcc/stm32l152xc_flash.ld)
+    set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/boards/NAMote72/cmsis/arm-gcc/stm32l152xc_flash.ld)	# 设置链接脚本
     include(stm32l1)
 
     # Build platform specific board implementation
@@ -189,7 +189,7 @@ endif()
 # General Components
 #---------------------------------------------------------------------------------------
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/boards)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/boards)	# 添加源码子目录到工程
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/radio)
 
@@ -203,7 +203,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/peripherals)
 # Applications
 #---------------------------------------------------------------------------------------
 
-if(APPLICATION STREQUAL LoRaMac)
+if(APPLICATION STREQUAL LoRaMac)						# 添加相应的应用代码到工程
 
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/apps/LoRaMac)
 

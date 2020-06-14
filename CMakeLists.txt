@@ -15,7 +15,12 @@
 ## License:  Revised BSD License, see LICENSE.TXT file included in the project
 ## Authors:  Johannes Bruder (STACKFORCE), Miguel Luis (Semtech)
 ##
+
+## 设置项目名称
 project(loramac-node)
+
+## cmake的最低版本要求声明
 cmake_minimum_required(VERSION 3.6)
 
+## 添加源码子目录到工程
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -20,18 +20,18 @@
 ##
 
 # Append current directory to CMAKE_MODULE_PATH for making device specific cmake modules visible
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})	# add CMAKE_MODULE
 
 # Target definition
-set(CMAKE_SYSTEM_NAME  Generic)
-set(CMAKE_SYSTEM_PROCESSOR ARM)
+set(CMAKE_SYSTEM_NAME  Generic)		# 构建的CMAKE的操作系统名称，默认与CMAKE_HOST_SYSTEM_NAME一致
+set(CMAKE_SYSTEM_PROCESSOR ARM)		# 构建的CPU CMAKE的名称
 
 #---------------------------------------------------------------------------------------
 # Set toolchain paths
 #---------------------------------------------------------------------------------------
 set(TOOLCHAIN arm-none-eabi)
-if(NOT DEFINED TOOLCHAIN_PREFIX)
-    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
+if(NOT DEFINED TOOLCHAIN_PREFIX)	# 判断是否指定交叉编译工具链的位置
+    if(CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)	# 判断当前操作系统是否 Linux
         set(TOOLCHAIN_PREFIX "/usr")
     elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL Darwin)
         set(TOOLCHAIN_PREFIX "/usr/local")
@@ -78,9 +78,9 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "" CACHE INTERNAL "Linker options for release
 #---------------------------------------------------------------------------------------
 # Set compilers
 #---------------------------------------------------------------------------------------
-set(CMAKE_C_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc${TOOLCHAIN_EXT} CACHE INTERNAL "C Compiler")
-set(CMAKE_CXX_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-g++${TOOLCHAIN_EXT} CACHE INTERNAL "C++ Compiler")
-set(CMAKE_ASM_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc${TOOLCHAIN_EXT} CACHE INTERNAL "ASM Compiler")
+set(CMAKE_C_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc${TOOLCHAIN_EXT} CACHE INTERNAL "C Compiler")			# C 	语言编译执行文件
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-g++${TOOLCHAIN_EXT} CACHE INTERNAL "C++ Compiler")		# C++ 	语言编译执行文件
+set(CMAKE_ASM_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc${TOOLCHAIN_EXT} CACHE INTERNAL "ASM Compiler")		# 汇编 	语言编译执行文件
 
 set(CMAKE_FIND_ROOT_PATH ${TOOLCHAIN_PREFIX}/${${TOOLCHAIN}} ${CMAKE_PREFIX_PATH})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

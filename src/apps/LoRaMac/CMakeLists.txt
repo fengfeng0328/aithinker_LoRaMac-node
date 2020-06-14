@@ -25,7 +25,7 @@ cmake_minimum_required(VERSION 3.6)
 # Allow switching of sub projects
 set(SUB_PROJECT_LIST classA classB classC periodic-uplink-lpp fuota-test-01)
 set(SUB_PROJECT classA CACHE STRING "Default sub project is Class A")
-set_property(CACHE SUB_PROJECT PROPERTY STRINGS ${SUB_PROJECT_LIST})
+set_property(CACHE SUB_PROJECT PROPERTY STRINGS ${SUB_PROJECT_LIST})		# 选择工程目录下的子项目
 
 # Allow switching of active region
 set(ACTIVE_REGION_LIST   LORAMAC_REGION_EU868 LORAMAC_REGION_US915 LORAMAC_REGION_CN779
@@ -33,7 +33,7 @@ set(ACTIVE_REGION_LIST   LORAMAC_REGION_EU868 LORAMAC_REGION_US915 LORAMAC_REGIO
     LORAMAC_REGION_KR920 LORAMAC_REGION_IN865 LORAMAC_REGION_RU864
 )
 set(ACTIVE_REGION LORAMAC_REGION_EU868 CACHE STRING "Default active region is EU868")
-set_property(CACHE ACTIVE_REGION PROPERTY STRINGS ${ACTIVE_REGION_LIST})
+set_property(CACHE ACTIVE_REGION PROPERTY STRINGS ${ACTIVE_REGION_LIST})	# 选择工作频段
 
 if((SUB_PROJECT STREQUAL classB OR SUB_PROJECT STREQUAL periodic-uplink-lpp OR SUB_PROJECT STREQUAL fuota-test-01) AND NOT CLASSB_ENABLED )
     message(FATAL_ERROR "Please turn on Class B support of LoRaMac ( CLASSB_ENABLED=ON ) to use Class B, periodic-uplink-lpp, fuota-test-01 sub projects")

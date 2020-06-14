@@ -19,10 +19,11 @@
 ## STM32L1 target specific CMake file
 ##
 
+# 判断是否已定义链接脚本，若定义则输出链接脚本路径
 if(NOT DEFINED LINKER_SCRIPT)
 message(FATAL_ERROR "No linker script defined")
 endif(NOT DEFINED LINKER_SCRIPT)
-message("Linker script: ${LINKER_SCRIPT}")
+message("Linker script: ${LINKER_SCRIPT}")	# 输出链接脚本路径
 
 
 #---------------------------------------------------------------------------------------
@@ -32,7 +33,7 @@ message("Linker script: ${LINKER_SCRIPT}")
 # Object build options
 set(OBJECT_GEN_FLAGS "-Og -g -mthumb -g2 -fno-builtin -mcpu=cortex-m3 -Wall -Wextra -pedantic -Wno-unused-parameter -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
 
-set(CMAKE_C_FLAGS "${OBJECT_GEN_FLAGS} -std=gnu99 " CACHE INTERNAL "C Compiler options")
+set(CMAKE_C_FLAGS "${OBJECT_GEN_FLAGS} -std=gnu99 " CACHE INTERNAL "C Compiler options")	# CACHE INTERNAL: 用于在运行之间持久存储变量，不会在GUI界面显示，使用此类型，则默认FORCE
 set(CMAKE_CXX_FLAGS "${OBJECT_GEN_FLAGS} -std=c++11 " CACHE INTERNAL "C++ Compiler options")
 set(CMAKE_ASM_FLAGS "${OBJECT_GEN_FLAGS} -x assembler-with-cpp " CACHE INTERNAL "ASM Compiler options")
 
