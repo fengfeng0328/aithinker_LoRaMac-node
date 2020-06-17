@@ -23,6 +23,12 @@ enable_language(ASM)
 # Target
 #---------------------------------------------------------------------------------------
 
+#--------------------------------------
+# 1) 板级文件导入
+# 2) CMSIS内核文件导入
+# 3) STM32L1xx_HAL_Driver外设驱动库导入
+#--------------------------------------
+
 list(APPEND ${PROJECT_NAME}_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/adc-board.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/board.c"

@@ -201,21 +201,40 @@ int main( void )
 
     Radio.Init( &RadioEvents );
 
-    Radio.SetChannel( RF_FREQUENCY );
+    Radio.SetChannel( RF_FREQUENCY );	/* 设置频率 */
 
 #if defined( USE_MODEM_LORA )
 
-    Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
-                                   LORA_SPREADING_FACTOR, LORA_CODINGRATE,
-                                   LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
-                                   true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
+    Radio.SetTxConfig( MODEM_LORA,		/* 调制模式 */
+    		TX_OUTPUT_POWER,			/* 发射功率 */
+			0,							/* 设置频偏，LORA调制设置成0 */
+			LORA_BANDWIDTH,				/* 通信带宽 */
+            LORA_SPREADING_FACTOR,		/* 扩频因子 */
+			LORA_CODINGRATE,			/* 纠错编码率 */
+            LORA_PREAMBLE_LENGTH,		/* 前导码长度 */
+			LORA_FIX_LENGTH_PAYLOAD_ON,	/* 数据包长度固定使能配置 [0: variable, 1: fixed] */
+            true,						/* CRC校验使能配置 [0: OFF, 1: ON] */
+			0,							/* 跳频使能配置 [0: OFF, 1: ON] */
+			0,							/* 每一跳之间的符号数目 */
+			LORA_IQ_INVERSION_ON,		/* IQ信号反转使能配置 [0: not inverted, 1: inverted] */
+			3000 );						/* 发送超时间隔 */
 
-    Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
-                                   LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
-                                   LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
-                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
+    Radio.SetRxConfig( MODEM_LORA,		/* 调制模式 */
+    		LORA_BANDWIDTH,				/* 通信带宽 */
+			LORA_SPREADING_FACTOR,		/* 扩频因子 */
+            LORA_CODINGRATE,			/* 纠错编码率 */
+			0,							/* 设置AFC带宽，LORA调制设置成0 */
+			LORA_PREAMBLE_LENGTH,		/* 前导码长度 */
+            LORA_SYMBOL_TIMEOUT,		/* 超时符号配置 */
+			LORA_FIX_LENGTH_PAYLOAD_ON,	/* 数据包长度固定使能配置 [0: variable, 1: fixed] */
+            0,							/* 数据包长度固定使能前提下，接收方需要配置将要接收的固定数据包长度 */
+			true,						/* CRC校验使能配置 [0: OFF, 1: ON] */
+			0,							/* 跳频使能配置 [0: OFF, 1: ON] */
+			0,							/* 每一跳之间的符号数目 */
+			LORA_IQ_INVERSION_ON,		/* IQ信号反转使能配置 [0: not inverted, 1: inverted] */
+			true );						/* 连续接收模式使能配置 [false: single mode, true: continuous mode] */
 
-    Radio.SetMaxPayloadLength( MODEM_LORA, BUFFER_SIZE );
+    Radio.SetMaxPayloadLength( MODEM_LORA, BUFFER_SIZE );	/* 设置最大负载长度 */
 
 #elif defined( USE_MODEM_FSK )
 
@@ -235,7 +254,7 @@ int main( void )
     #error "Please define a frequency band in the compiler options."
 #endif
 
-    Radio.Rx( RX_TIMEOUT_VALUE );
+    Radio.Rx( RX_TIMEOUT_VALUE );	/* RX接收超时间隔 */
 
     while( 1 )
     {
@@ -280,7 +299,7 @@ int main( void )
             else
             {
                 if( BufferSize > 0 )
-                {
+                {	/* 若收到PingMsg，则回复PONG开头的负载信息 */
                     if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
                     {
                         // Indicates on a LED that the received frame is a PING
@@ -317,7 +336,7 @@ int main( void )
             break;
         case RX_TIMEOUT:
         case RX_ERROR:
-            if( isMaster == true )
+            if( isMaster == true )	/* 若接收ERROR并且处于Master角色，尝试重新发送数据 */
             {
                 // Send the next PING frame
                 Buffer[0] = 'P';
@@ -331,7 +350,7 @@ int main( void )
                 DelayMs( 1 );
                 Radio.Send( Buffer, BufferSize );
             }
-            else
+            else					/* 若接收ERROR并且处于Slave角色，尝试重新接收数据 */
             {
                 Radio.Rx( RX_TIMEOUT_VALUE );
             }

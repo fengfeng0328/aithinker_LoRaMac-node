@@ -141,17 +141,17 @@ void BoardInitPeriph( void )
 
 void BoardInitMcu( void )
 {
-    if( McuInitialized == false )
+    if( McuInitialized == false )	/* 判断 NucleoL152是否已经初始化 */
     {
-        HAL_Init( );
+        HAL_Init( );				/* 标准库接口，硬件初始化 */
 
         // LEDs
         GpioInit( &Led1, LED_1, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
         GpioInit( &Led2, LED_2, PIN_OUTPUT, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
 
-        SystemClockConfig( );
+        SystemClockConfig( );		/* 系统时钟配置 */
 
-        UsbIsConnected = true;
+        UsbIsConnected = true;		/* 用于指示主板是否由USB供电的标志 */
 
         FifoInit( &Uart2.FifoTx, Uart2TxBuffer, UART2_FIFO_TX_SIZE );
         FifoInit( &Uart2.FifoRx, Uart2RxBuffer, UART2_FIFO_RX_SIZE );
@@ -162,7 +162,7 @@ void BoardInitMcu( void )
         RtcInit( );
 
         BoardUnusedIoInit( );
-        if( GetBoardPowerSource( ) == BATTERY_POWER )
+        if( GetBoardPowerSource( ) == BATTERY_POWER )	/* 判断板子是否由电池供电 */
         {
             // Disables OFF mode - Enables lowest power mode (STOP)
             LpmSetOffMode( LPM_APPLI_ID, LPM_DISABLE );
@@ -170,7 +170,7 @@ void BoardInitMcu( void )
     }
     else
     {
-        SystemClockReConfig( );
+        SystemClockReConfig( );		/* 重置系统时钟 */
     }
 
 #if defined( SX1261MBXBAS ) || defined( SX1262MBXCAS ) || defined( SX1262MBXDAS )
@@ -182,9 +182,9 @@ void BoardInitMcu( void )
 #elif defined( SX1272MB2DAS )
     SpiInit( &SX1272.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
     SX1272IoInit( );
-#elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )
-    SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );
-    SX1276IoInit( );
+#elif defined( SX1276MB1LAS ) || defined( SX1276MB1MAS )					/* SX1276MB1LAS输出功率达20dBm，SX1276MB1MAS输出功率仅14dBm */
+    SpiInit( &SX1276.Spi, SPI_1, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, NC );	/* 硬件接口SPI初始化 */
+    SX1276IoInit( );														/* 硬件GPIO初始化 */
 #endif
 
     if( McuInitialized == false )
