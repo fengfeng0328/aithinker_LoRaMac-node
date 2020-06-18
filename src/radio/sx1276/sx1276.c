@@ -225,21 +225,22 @@ void SX1276Init( RadioEvents_t *events )
 {
     uint8_t i;
 
-    RadioEvents = events;
+    RadioEvents = events;	/* 初始化事件回调函数 */
 
     // Initialize driver timeout timers
-    TimerInit( &TxTimeoutTimer, SX1276OnTimeoutIrq );
-    TimerInit( &RxTimeoutTimer, SX1276OnTimeoutIrq );
-    TimerInit( &RxTimeoutSyncWord, SX1276OnTimeoutIrq );
+    TimerInit( &TxTimeoutTimer, SX1276OnTimeoutIrq );		/* 发送超时定时器 */
+    TimerInit( &RxTimeoutTimer, SX1276OnTimeoutIrq );		/* 接收超时定时器 */
+    TimerInit( &RxTimeoutSyncWord, SX1276OnTimeoutIrq );	/* 接收同步字超时定时器 */
 
-    SX1276Reset( );
+    SX1276Reset( );			/* SX1276复位 */
 
-    RxChainCalibration( );
+    RxChainCalibration( );	/* SX1276接收校准，一般复位后调用该函数 */
 
-    SX1276SetOpMode( RF_OPMODE_SLEEP );
+    SX1276SetOpMode( RF_OPMODE_SLEEP );	/* SX1276设置成睡眠模式 */
 
-    SX1276IoIrqInit( DioIrq );
+    SX1276IoIrqInit( DioIrq );			/* 注册中断处理函数 */
 
+    /* 寄存器配置成初始值 */
     for( i = 0; i < sizeof( RadioRegsInit ) / sizeof( RadioRegisters_t ); i++ )
     {
         SX1276SetModem( RadioRegsInit[i].Modem );
@@ -251,11 +252,13 @@ void SX1276Init( RadioEvents_t *events )
     SX1276.Settings.State = RF_IDLE;
 }
 
+/* 获取RF工作状态 [RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING, RF_CAD] */
 RadioState_t SX1276GetStatus( void )
 {
     return SX1276.Settings.State;
 }
 
+/* 设置RF频率 */
 void SX1276SetChannel( uint32_t freq )
 {
     SX1276.Settings.Channel = freq;
@@ -265,6 +268,7 @@ void SX1276SetChannel( uint32_t freq )
     SX1276Write( REG_FRFLSB, ( uint8_t )( freq & 0xFF ) );
 }
 
+/* 判断RF频段是否空闲 [通过检测指定时间内频段的RSSI阀值实现] */
 bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh, uint32_t maxCarrierSenseTime )
 {
     bool status = true;
@@ -277,7 +281,7 @@ bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh
 
     SX1276SetChannel( freq );
 
-    SX1276SetOpMode( RF_OPMODE_RECEIVER );
+    SX1276SetOpMode( RF_OPMODE_RECEIVER );	/* 设置成接收模式 */
 
     DelayMs( 1 );
 
@@ -326,6 +330,7 @@ uint32_t SX1276Random( void )
     {
         DelayMs( 1 );
         // Unfiltered RSSI value reading. Only takes the LSB value
+        // 读取未过滤的RSSI值,只取LSB的值
         rnd |= ( ( uint32_t )SX1276Read( REG_LR_RSSIWIDEBAND ) & 0x01 ) << i;
     }
 
@@ -903,6 +908,7 @@ void SX1276Send( uint8_t *buffer, uint8_t size )
     SX1276SetTx( txTimeout );
 }
 
+/* 设置SX1276成睡眠模式 */
 void SX1276SetSleep( void )
 {
     TimerStop( &RxTimeoutTimer );
@@ -917,6 +923,7 @@ void SX1276SetSleep( void )
     SX1276.Settings.State = RF_IDLE;
 }
 
+/* 设置SX1276成待机模式 */
 void SX1276SetStby( void )
 {
     TimerStop( &RxTimeoutTimer );
@@ -1308,12 +1315,12 @@ void SX1276SetModem( RadioModems_t modem )
         break;
     }
 }
-
+/* 写寄存器 */
 void SX1276Write( uint32_t addr, uint8_t data )
 {
     SX1276WriteBuffer( addr, &data, 1 );
 }
-
+/* 读寄存器 */
 uint8_t SX1276Read( uint32_t addr )
 {
     uint8_t data;
@@ -1355,17 +1362,17 @@ void SX1276ReadBuffer( uint32_t addr, uint8_t *buffer, uint8_t size )
     //NSS = 1;
     GpioWrite( &SX1276.Spi.Nss, 1 );
 }
-
+/* 写FIFO */
 void SX1276WriteFifo( uint8_t *buffer, uint8_t size )
 {
     SX1276WriteBuffer( 0, buffer, size );
 }
-
+/* 读FIFO */
 void SX1276ReadFifo( uint8_t *buffer, uint8_t size )
 {
     SX1276ReadBuffer( 0, buffer, size );
 }
-
+/* 设置负载最大长度 */
 void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max )
 {
     SX1276SetModem( modem );
@@ -1480,7 +1487,7 @@ void SX1276OnTimeoutIrq( void* context )
         break;
     }
 }
-
+/* 接收完成中断处理函数 */
 void SX1276OnDio0Irq( void* context )
 {
     volatile uint8_t irqFlags = 0;
@@ -1573,10 +1580,11 @@ void SX1276OnDio0Irq( void* context )
                 break;
             case MODEM_LORA:
                 {
-                    // Clear Irq
-                    SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXDONE );
+                    // Clear Irq [一次写操作清除IRQ]
+                    SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXDONE );	/* 数据包接收完成中断标志 */
 
                     irqFlags = SX1276Read( REG_LR_IRQFLAGS );
+                    /* 判断是否存在负载CRC错误中断 */
                     if( ( irqFlags & RFLR_IRQFLAGS_PAYLOADCRCERROR_MASK ) == RFLR_IRQFLAGS_PAYLOADCRCERROR )
                     {
                         // Clear Irq
@@ -1667,7 +1675,7 @@ void SX1276OnDio0Irq( void* context )
             break;
     }
 }
-
+/* 接收超时中断处理函数 */
 void SX1276OnDio1Irq( void* context )
 {
     switch( SX1276.Settings.State )
@@ -1714,8 +1722,8 @@ void SX1276OnDio1Irq( void* context )
             case MODEM_LORA:
                 // Sync time out
                 TimerStop( &RxTimeoutTimer );
-                // Clear Irq
-                SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );
+                // Clear Irq [一次写操作清除IRQ]
+                SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );	/* 接收超时中断 */
 
                 SX1276.Settings.State = RF_IDLE;
                 if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
@@ -1832,10 +1840,11 @@ void SX1276OnDio3Irq( void* context )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
+    	/* 若CAD检测到有效的LORA信号，则执行 */
         if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
         {
-            // Clear Irq
-            SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
+            // Clear Irq [一次写操作会清楚CAD IRQ]
+            SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );	/* 有效LORA信号 | CAD完成 */
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
             {
                 RadioEvents->CadDone( true );
@@ -1843,7 +1852,7 @@ void SX1276OnDio3Irq( void* context )
         }
         else
         {
-            // Clear Irq
+            // Clear Irq [一次写操作会清除CAD IRQ]
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
             {
@@ -1855,7 +1864,7 @@ void SX1276OnDio3Irq( void* context )
         break;
     }
 }
-
+/* DIO4中断处理函数 */
 void SX1276OnDio4Irq( void* context )
 {
     switch( SX1276.Settings.Modem )
@@ -1874,7 +1883,7 @@ void SX1276OnDio4Irq( void* context )
         break;
     }
 }
-
+/* DIO5中断处理函数 */
 void SX1276OnDio5Irq( void* context )
 {
     switch( SX1276.Settings.Modem )

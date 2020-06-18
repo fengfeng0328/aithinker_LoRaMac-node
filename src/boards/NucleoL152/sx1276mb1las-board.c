@@ -45,30 +45,30 @@ static bool RadioIsActive = false;
  */
 const struct Radio_s Radio =
 {
-    SX1276Init,
-    SX1276GetStatus,
-    SX1276SetModem,
-    SX1276SetChannel,
-    SX1276IsChannelFree,
-    SX1276Random,
-    SX1276SetRxConfig,
-    SX1276SetTxConfig,
-    SX1276CheckRfFrequency,
-    SX1276GetTimeOnAir,
-    SX1276Send,
-    SX1276SetSleep,
-    SX1276SetStby,
-    SX1276SetRx,
-    SX1276StartCad,
-    SX1276SetTxContinuousWave,
-    SX1276ReadRssi,
-    SX1276Write,
-    SX1276Read,
-    SX1276WriteBuffer,
-    SX1276ReadBuffer,
-    SX1276SetMaxPayloadLength,
-    SX1276SetPublicNetwork,
-    SX1276GetWakeupTime,
+    SX1276Init,					/* SX1276初始化 */
+    SX1276GetStatus,			/* 获取工作状态 [RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING, RF_CAD] */
+    SX1276SetModem,				/* 设置调制模式 [FSK, LORA] */
+    SX1276SetChannel,			/* 设置通讯频率 */
+    SX1276IsChannelFree,		/* 判断通讯信道是否空闲 */
+    SX1276Random,				/* 根据RSSI生成一个32位的随机值 */
+    SX1276SetRxConfig,			/* 接收配置 */
+    SX1276SetTxConfig,			/* 发送配置 */
+    SX1276CheckRfFrequency,		/* 检查硬件是否支持配置的通讯频率 */
+    SX1276GetTimeOnAir,			/* 获取空中传输时间 */
+    SX1276Send,					/* 发送数据 */
+    SX1276SetSleep,				/* 设置睡眠*/
+    SX1276SetStby,				/* 设置待机 */
+    SX1276SetRx,				/* 设置接收 [指定时间内] */
+    SX1276StartCad,				/* 开启通道活动检测 */
+    SX1276SetTxContinuousWave,	/* 设置连续发送模式 */
+    SX1276ReadRssi,				/* 读取信号强度 */
+    SX1276Write,				/* 写寄存器 */
+    SX1276Read,					/* 读寄存器 */
+    SX1276WriteBuffer,			/* 写多个寄存器 */
+    SX1276ReadBuffer,			/* 读多个寄存器 */
+    SX1276SetMaxPayloadLength,	/* 设置发送数据包的最大负载长度 */
+    SX1276SetPublicNetwork,		/* 设置网络属性 [公有网络，私有网络，同时更新同步字] */
+    SX1276GetWakeupTime,		/* 获取睡眠唤醒时间 */
     NULL, // void ( *IrqProcess )( void )
     NULL, // void ( *RxBoosted )( uint32_t timeout ) - SX126x Only
     NULL, // void ( *SetRxDutyCycle )( uint32_t rxTime, uint32_t sleepTime ) - SX126x Only
