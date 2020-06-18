@@ -71,8 +71,8 @@ extern "C"
 #define LED_2                                       PC_0
 
 // Debug pins definition.
-#define RADIO_DBG_PIN_TX                            PB_6
-#define RADIO_DBG_PIN_RX                            PC_7
+#define RADIO_DBG_PIN_TX                            PB_6	/* deBug引脚 */
+#define RADIO_DBG_PIN_RX                            PC_7	/* deBug引脚 */
 
 #elif defined( LR1110MB1XXS )
 

@@ -225,7 +225,7 @@ void SX1276Init( RadioEvents_t *events )
 {
     uint8_t i;
 
-    RadioEvents = events;	/* 初始化事件回调函数 */
+    RadioEvents = events;	/* 注册应用层事件回调函数 */
 
     // Initialize driver timeout timers
     TimerInit( &TxTimeoutTimer, SX1276OnTimeoutIrq );		/* 发送超时定时器 */
@@ -359,7 +359,10 @@ static void RxChainCalibration( void )
     SX1276Write( REG_PACONFIG, 0x00 );
 
     // Launch Rx chain calibration for LF band
+    // Triggers the IQ and RSSI calibration when set in Standby mode
     SX1276Write( REG_IMAGECAL, ( SX1276Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_MASK ) | RF_IMAGECAL_IMAGECAL_START );
+    // Set to 1 while the Image and RSSI calibration are running.
+	// Toggles back to 0 when the process is completed
     while( ( SX1276Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_RUNNING ) == RF_IMAGECAL_IMAGECAL_RUNNING )
     {
     }
@@ -1063,8 +1066,8 @@ void SX1276SetRx( uint32_t timeout )
                 // DIO0=RxDone
                 SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
             }
-            SX1276Write( REG_LR_FIFORXBASEADDR, 0 );
-            SX1276Write( REG_LR_FIFOADDRPTR, 0 );
+            SX1276Write( REG_LR_FIFORXBASEADDR, 0 );	/* 设置接收起始地址 */
+            SX1276Write( REG_LR_FIFOADDRPTR, 0 );		/* 设置FIFO数据缓冲区中的SPI接口地址指针 */
         }
         break;
     }
@@ -1074,8 +1077,8 @@ void SX1276SetRx( uint32_t timeout )
     SX1276.Settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {
-        TimerSetValue( &RxTimeoutTimer, timeout );
-        TimerStart( &RxTimeoutTimer );
+        TimerSetValue( &RxTimeoutTimer, timeout );	/* 设置接收超时时间 */
+        TimerStart( &RxTimeoutTimer );				/* 开启接收超时定时器 */
     }
 
     if( SX1276.Settings.Modem == MODEM_FSK )
@@ -1723,12 +1726,12 @@ void SX1276OnDio1Irq( void* context )
                 // Sync time out
                 TimerStop( &RxTimeoutTimer );
                 // Clear Irq [一次写操作清除IRQ]
-                SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );	/* 接收超时中断 */
+                SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );	/* 清除接收超时中断标志 */
 
                 SX1276.Settings.State = RF_IDLE;
                 if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
                 {
-                    RadioEvents->RxTimeout( );
+                    RadioEvents->RxTimeout( );								/* 回调应用层接收超时事件 */
                 }
                 break;
             default:

@@ -128,7 +128,7 @@ typedef enum
     RX_ERROR,
     TX,
     TX_TIMEOUT,
-}States_t;
+}States_t;	/* 应用层工作状态 [低功耗, 接收, 接收超时, 接收错误, 发送, 发送超时] */
 
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 64 // Define the payload size here
@@ -137,12 +137,12 @@ const uint8_t PingMsg[] = "PING";
 const uint8_t PongMsg[] = "PONG";
 
 uint16_t BufferSize = BUFFER_SIZE;
-uint8_t Buffer[BUFFER_SIZE];
+uint8_t Buffer[BUFFER_SIZE];		// 应用层数据缓存
 
-States_t State = LOWPOWER;
+States_t State = LOWPOWER;			// 应用层工作状态
 
-int8_t RssiValue = 0;
-int8_t SnrValue = 0;
+int8_t RssiValue = 0;				// 应用层信号强度
+int8_t SnrValue = 0;				// 应用层信噪比值
 
 /*!
  * Radio events function pointer
@@ -199,7 +199,7 @@ int main( void )
     RadioEvents.RxTimeout = OnRxTimeout;
     RadioEvents.RxError = OnRxError;
 
-    Radio.Init( &RadioEvents );
+    Radio.Init( &RadioEvents );			/* 初始化 [注册应用层事件回调函数, 定时器初始化, IQ和RSSI校准, 注册DIO中断处理, 寄存器初始化] */
 
     Radio.SetChannel( RF_FREQUENCY );	/* 设置频率 */
 
@@ -374,13 +374,13 @@ int main( void )
         }
     }
 }
-
+/* 应用层事件回调，发送完成 */
 void OnTxDone( void )
 {
     Radio.Sleep( );
     State = TX;
 }
-
+/* 应用层事件回调，接收完成 */
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     Radio.Sleep( );
@@ -390,19 +390,19 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     SnrValue = snr;
     State = RX;
 }
-
+/* 应用层事件回调，发送超时 */
 void OnTxTimeout( void )
 {
     Radio.Sleep( );
     State = TX_TIMEOUT;
 }
-
+/* 应用层事件回调，接收超时 */
 void OnRxTimeout( void )
 {
     Radio.Sleep( );
     State = RX_TIMEOUT;
 }
-
+/* 应用层事件回调，接收错误 */
 void OnRxError( void )
 {
     Radio.Sleep( );

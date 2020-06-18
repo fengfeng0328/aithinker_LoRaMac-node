@@ -45,7 +45,7 @@ static bool RadioIsActive = false;
  */
 const struct Radio_s Radio =
 {
-    SX1276Init,					/* SX1276初始化 */
+    SX1276Init,					/* 初始化 [注册应用层事件回调函数, 定时器初始化, IQ和RSSI校准, 注册DIO中断处理, 寄存器初始化] */
     SX1276GetStatus,			/* 获取工作状态 [RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING, RF_CAD] */
     SX1276SetModem,				/* 设置调制模式 [FSK, LORA] */
     SX1276SetChannel,			/* 设置通讯频率 */
