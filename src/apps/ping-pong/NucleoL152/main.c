@@ -261,6 +261,7 @@ int main( void )
         switch( State )
         {
         case RX:
+			printf("main: %s, RX:%s\r\n", __FUNCTION__, Buffer);
             if( isMaster == true )
             {
                 if( BufferSize > 0 )
@@ -278,7 +279,7 @@ int main( void )
                         // We fill the buffer with numbers for the payload
                         for( i = 4; i < BufferSize; i++ )
                         {
-                            Buffer[i] = i - 4;
+                            Buffer[i] = 0;
                         }
                         DelayMs( 1 );
                         Radio.Send( Buffer, BufferSize );
@@ -313,7 +314,7 @@ int main( void )
                         // We fill the buffer with numbers for the payload
                         for( i = 4; i < BufferSize; i++ )
                         {
-                            Buffer[i] = i - 4;
+                            Buffer[i] = 0;
                         }
                         DelayMs( 1 );
                         Radio.Send( Buffer, BufferSize );
@@ -345,7 +346,7 @@ int main( void )
                 Buffer[3] = 'G';
                 for( i = 4; i < BufferSize; i++ )
                 {
-                    Buffer[i] = i - 4;
+                    Buffer[i] = 0;
                 }
                 DelayMs( 1 );
                 Radio.Send( Buffer, BufferSize );
@@ -379,6 +380,8 @@ void OnTxDone( void )
 {
     Radio.Sleep( );
     State = TX;
+
+    printf("main: %s\r\n", __FUNCTION__);
 }
 /* 应用层事件回调，接收完成 */
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
@@ -389,22 +392,30 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     RssiValue = rssi;
     SnrValue = snr;
     State = RX;
+
+    printf("main: %s\r\n", __FUNCTION__);
 }
 /* 应用层事件回调，发送超时 */
 void OnTxTimeout( void )
 {
     Radio.Sleep( );
     State = TX_TIMEOUT;
+
+    printf("main: %s\r\n", __FUNCTION__);
 }
 /* 应用层事件回调，接收超时 */
 void OnRxTimeout( void )
 {
     Radio.Sleep( );
     State = RX_TIMEOUT;
+
+    printf("main: %s\r\n", __FUNCTION__);
 }
 /* 应用层事件回调，接收错误 */
 void OnRxError( void )
 {
     Radio.Sleep( );
     State = RX_ERROR;
+
+    printf("main: %s\r\n", __FUNCTION__);
 }
