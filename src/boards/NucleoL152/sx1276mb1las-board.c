@@ -178,23 +178,27 @@ void SX1276SetRfTxPower( int8_t power )
     uint8_t paConfig = 0;
     uint8_t paDac = 0;
 
-    paConfig = SX1276Read( REG_PACONFIG );
-    paDac = SX1276Read( REG_PADAC );
+    paConfig = SX1276Read( REG_PACONFIG );	/* PA配置寄存器 */
+    paDac = SX1276Read( REG_PADAC );		/* PA高功率配置寄存器 */
 
     paConfig = ( paConfig & RF_PACONFIG_PASELECT_MASK ) | SX1276GetPaSelect( SX1276.Settings.Channel );
 
+    /* REG_PACONFIG--> PASELECT [0:RFO引脚，输出功率不得超过+14dBm, 1:PA_BOOST引脚，输出功率不得超过+20dBm] */
     if( ( paConfig & RF_PACONFIG_PASELECT_PABOOST ) == RF_PACONFIG_PASELECT_PABOOST )
     {
-        if( power > 17 )
+        if( power > 17 )	/* 若发射功率 > 17dBm，必须配置REG_PADAC寄存器 */
         {
+        	/* REG_PADAC--> PaDac [0x07:+20dBm on PA_BOOST when OutputPower=1111] */
             paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_ON;
         }
         else
         {
+        	/* REG_PADAC--> PaDac [0x04:Default value] */
             paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_OFF;
         }
         if( ( paDac & RF_PADAC_20DBM_ON ) == RF_PADAC_20DBM_ON )
         {
+        	/* PA_BOOST+REG_PADAC(0x07) 功率限制 [5dBm - 20dBm] */
             if( power < 5 )
             {
                 power = 5;
@@ -207,6 +211,7 @@ void SX1276SetRfTxPower( int8_t power )
         }
         else
         {
+        	/* PA_BOOST+REG_PADAC(0x04) 功率限制 [2dBm - 17dBm] */
             if( power < 2 )
             {
                 power = 2;
@@ -222,10 +227,12 @@ void SX1276SetRfTxPower( int8_t power )
     {
         if( power > 0 )
         {
+        	/* RFO+REG_PADAC(0x04) 功率限制 [-4dBm - 15dBm] */
             if( power > 15 )
             {
                 power = 15;
             }
+            /* +MaxPower(0111)  */
             paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( 7 << 4 ) | ( power );
         }
         else
@@ -234,15 +241,24 @@ void SX1276SetRfTxPower( int8_t power )
             {
                 power = -4;
             }
+            /* +MaxPower(0000)  */
             paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( 0 << 4 ) | ( power + 4 );
         }
     }
     SX1276Write( REG_PACONFIG, paConfig );
     SX1276Write( REG_PADAC, paDac );
 }
-
+/* Gets the board PA selection configuration [PASELECT_PABOOST、PASELECT_RFO与工作频率相关] */
 static uint8_t SX1276GetPaSelect( uint32_t channel )
 {
+	/*
+	 * RFO_LF covering the lower UHF bands (up to 525 MHz),
+	 * RFO_HF covering the upper UHF bands (from 779 MHz),
+	 * PA_BOOST pin and can deliver up to +20 dBm via a dedicated matching network.(全频段覆盖)
+	 *
+	 * 从上面来看，该函数在逻辑设计上缺少了RFO_HF的判断，频率 >525MHZ有可能是使用RFO_HF, 不一定是PA_BOOST方式 (实际使用中需要根据具体电路更改)
+	 *
+	 * */
     if( channel > RF_MID_BAND_THRESH )
     {
         return RF_PACONFIG_PASELECT_PABOOST;

@@ -487,13 +487,14 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
             if( ( ( bandwidth == 7 ) && ( ( datarate == 11 ) || ( datarate == 12 ) ) ) ||
                 ( ( bandwidth == 8 ) && ( datarate == 12 ) ) )
             {
-                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;	/* 打开低速率优化寄存器 */
             }
             else
             {
-                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;	/* 关闭低速率优化寄存器 */
             }
 
+            /* LORA调制配置寄存器1 [带宽配置, 纠错编码率配置, 显式/隐式报头] */
             SX1276Write( REG_LR_MODEMCONFIG1,
                          ( SX1276Read( REG_LR_MODEMCONFIG1 ) &
                            RFLR_MODEMCONFIG1_BW_MASK &
@@ -501,7 +502,7 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                            RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK ) |
                            ( bandwidth << 4 ) | ( coderate << 1 ) |
                            fixLen );
-
+            /* LORA调制配置寄存器2 [扩频因子, 负载数据CRC, 接收超时间隔SymbTimeoutMSB] */
             SX1276Write( REG_LR_MODEMCONFIG2,
                          ( SX1276Read( REG_LR_MODEMCONFIG2 ) &
                            RFLR_MODEMCONFIG2_SF_MASK &
@@ -509,28 +510,33 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                            RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK ) |
                            ( datarate << 4 ) | ( crcOn << 2 ) |
                            ( ( symbTimeout >> 8 ) & ~RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK ) );
-
+            /* LORA调制配置寄存器3 [低速率优化寄存器配置] */
             SX1276Write( REG_LR_MODEMCONFIG3,
                          ( SX1276Read( REG_LR_MODEMCONFIG3 ) &
                            RFLR_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK ) |
                            ( SX1276.Settings.LoRa.LowDatarateOptimize << 3 ) );
 
+            /* 接收超时间隔SymbTimeoutLSB, [TimeOut = SymbTimeout * TS] */
             SX1276Write( REG_LR_SYMBTIMEOUTLSB, ( uint8_t )( symbTimeout & 0xFF ) );
 
+            /* RegPreambleMsb */
             SX1276Write( REG_LR_PREAMBLEMSB, ( uint8_t )( ( preambleLen >> 8 ) & 0xFF ) );
+            /* RegPreambleLsb */
             SX1276Write( REG_LR_PREAMBLELSB, ( uint8_t )( preambleLen & 0xFF ) );
 
-            if( fixLen == 1 )
+            if( fixLen == 1 )	/* 若是隐式报头[fixLen=1], 必须设置固定长度负载 */
             {
                 SX1276Write( REG_LR_PAYLOADLENGTH, payloadLen );
             }
 
+            /* 判断是否开启跳频 */
             if( SX1276.Settings.LoRa.FreqHopOn == true )
             {
-                SX1276Write( REG_LR_PLLHOP, ( SX1276Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );
-                SX1276Write( REG_LR_HOPPERIOD, SX1276.Settings.LoRa.HopPeriod );
+                SX1276Write( REG_LR_PLLHOP, ( SX1276Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );	/* 开启跳频 */
+                SX1276Write( REG_LR_HOPPERIOD, SX1276.Settings.LoRa.HopPeriod );	/* 设置跳频周期 */
             }
 
+            /* (带宽配置 500KHz) && (频率配置 > 525KHz) */
             if( ( bandwidth == 9 ) && ( SX1276.Settings.Channel > RF_MID_BAND_THRESH ) )
             {
                 // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
@@ -549,14 +555,15 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                 SX1276Write( REG_LR_HIGHBWOPTIMIZE1, 0x03 );
             }
 
+            /* 若扩频因子SF=6，需要进行另外处理 */
             if( datarate == 6 )
             {
                 SX1276Write( REG_LR_DETECTOPTIMIZE,
                              ( SX1276Read( REG_LR_DETECTOPTIMIZE ) &
                                RFLR_DETECTIONOPTIMIZE_MASK ) |
-                               RFLR_DETECTIONOPTIMIZE_SF6 );
+                               RFLR_DETECTIONOPTIMIZE_SF6 );		/* SF=6, LORA检测优化配置 */
                 SX1276Write( REG_LR_DETECTIONTHRESHOLD,
-                             RFLR_DETECTIONTHRESH_SF6 );
+                             RFLR_DETECTIONTHRESH_SF6 );			/* SF=6, LORA检测阀值配置 */
             }
             else
             {
@@ -578,9 +585,9 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
                         bool fixLen, bool crcOn, bool freqHopOn,
                         uint8_t hopPeriod, bool iqInverted, uint32_t timeout )
 {
-    SX1276SetModem( modem );
+    SX1276SetModem( modem );		/* 设置调制解调模式 [FSK/LORA] */
 
-    SX1276SetRfTxPower( power );
+    SX1276SetRfTxPower( power );	/* 设置RF发射功率 */
 
     switch( modem )
     {
@@ -647,19 +654,20 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
             if( ( ( bandwidth == 7 ) && ( ( datarate == 11 ) || ( datarate == 12 ) ) ) ||
                 ( ( bandwidth == 8 ) && ( datarate == 12 ) ) )
             {
-                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;	/* 打开低速率优化寄存器 */
             }
             else
             {
-                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;	/* 关闭低速率优化寄存器 */
             }
 
-            if( SX1276.Settings.LoRa.FreqHopOn == true )
+            if( SX1276.Settings.LoRa.FreqHopOn == true )			/* 开启跳频 */
             {
-                SX1276Write( REG_LR_PLLHOP, ( SX1276Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );
-                SX1276Write( REG_LR_HOPPERIOD, SX1276.Settings.LoRa.HopPeriod );
+                SX1276Write( REG_LR_PLLHOP, ( SX1276Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );	/* 开启跳频 */
+                SX1276Write( REG_LR_HOPPERIOD, SX1276.Settings.LoRa.HopPeriod );	/* 设置跳频周期 */
             }
 
+            /* LORA调制配置寄存器1 [带宽配置, 纠错编码率配置, 显式/隐式报头] */
             SX1276Write( REG_LR_MODEMCONFIG1,
                          ( SX1276Read( REG_LR_MODEMCONFIG1 ) &
                            RFLR_MODEMCONFIG1_BW_MASK &
@@ -668,28 +676,31 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
                            ( bandwidth << 4 ) | ( coderate << 1 ) |
                            fixLen );
 
+            /* LORA调制配置寄存器2 [扩频因子, 负载数据CRC] */
             SX1276Write( REG_LR_MODEMCONFIG2,
                          ( SX1276Read( REG_LR_MODEMCONFIG2 ) &
                            RFLR_MODEMCONFIG2_SF_MASK &
                            RFLR_MODEMCONFIG2_RXPAYLOADCRC_MASK ) |
                            ( datarate << 4 ) | ( crcOn << 2 ) );
 
+            /* LORA调制配置寄存器3 [低速率优化寄存器] */
             SX1276Write( REG_LR_MODEMCONFIG3,
                          ( SX1276Read( REG_LR_MODEMCONFIG3 ) &
                            RFLR_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK ) |
                            ( SX1276.Settings.LoRa.LowDatarateOptimize << 3 ) );
 
-            SX1276Write( REG_LR_PREAMBLEMSB, ( preambleLen >> 8 ) & 0x00FF );
-            SX1276Write( REG_LR_PREAMBLELSB, preambleLen & 0xFF );
+            SX1276Write( REG_LR_PREAMBLEMSB, ( preambleLen >> 8 ) & 0x00FF );	/* 前导码长度高位 */
+            SX1276Write( REG_LR_PREAMBLELSB, preambleLen & 0xFF );				/* 前导码长度低位 */
 
+            /* 若扩频因子SF=6，需要进行另外处理 */
             if( datarate == 6 )
             {
                 SX1276Write( REG_LR_DETECTOPTIMIZE,
                              ( SX1276Read( REG_LR_DETECTOPTIMIZE ) &
                                RFLR_DETECTIONOPTIMIZE_MASK ) |
-                               RFLR_DETECTIONOPTIMIZE_SF6 );
+                               RFLR_DETECTIONOPTIMIZE_SF6 );	/* SF=6, LORA检测优化配置 */
                 SX1276Write( REG_LR_DETECTIONTHRESHOLD,
-                             RFLR_DETECTIONTHRESH_SF6 );
+                             RFLR_DETECTIONTHRESH_SF6 );		/* SF=6, LORA检测阀值配置 */
             }
             else
             {
@@ -1279,11 +1290,13 @@ void SX1276SetOpMode( uint8_t opMode )
         SX1276SetAntSwLowPower( false );
         SX1276SetAntSw( opMode );
     }
+    /* 收发器工作模式设置 */
     SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
 }
 
 void SX1276SetModem( RadioModems_t modem )
 {
+	/* 读寄存器，判断当前工作的调制模式 */
     if( ( SX1276Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_ON ) != 0 )
     {
         SX1276.Settings.Modem = MODEM_LORA;
@@ -1293,6 +1306,7 @@ void SX1276SetModem( RadioModems_t modem )
         SX1276.Settings.Modem = MODEM_FSK;
     }
 
+    /* 判断当前的调制模式与将要设置的调制模式是否一致，若一致，则退出 */
     if( SX1276.Settings.Modem == modem )
     {
         return;
@@ -1310,8 +1324,18 @@ void SX1276SetModem( RadioModems_t modem )
         SX1276Write( REG_DIOMAPPING2, 0x30 ); // DIO5=ModeReady
         break;
     case MODEM_LORA:
+    	/* FSK与LORA调制之间的切换，必须在睡眠模式之下 */
         SX1276SetOpMode( RF_OPMODE_SLEEP );
+        /* 设置成LORA调制 [先读取REG_OPMODE寄存器配置，重置配置位，再赋值] */
         SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
+
+        /*
+         * DIO5: ModeReady
+         * DIO4: CadDetected
+         * DIO3: CadDone
+         * DIO2: FhssChangeChannel
+         * DIO1: RxTimeout
+         * DIO0: RxDone */
 
         SX1276Write( REG_DIOMAPPING1, 0x00 );
         SX1276Write( REG_DIOMAPPING2, 0x00 );

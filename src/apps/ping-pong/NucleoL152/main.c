@@ -225,7 +225,7 @@ int main( void )
             LORA_CODINGRATE,			/* 纠错编码率 */
 			0,							/* 设置AFC带宽，LORA调制设置成0 */
 			LORA_PREAMBLE_LENGTH,		/* 前导码长度 */
-            LORA_SYMBOL_TIMEOUT,		/* 超时符号配置 */
+            LORA_SYMBOL_TIMEOUT,		/* 接收超时配置 */
 			LORA_FIX_LENGTH_PAYLOAD_ON,	/* 数据包长度固定使能配置 [0: variable, 1: fixed] */
             0,							/* 数据包长度固定使能前提下，接收方需要配置将要接收的固定数据包长度 */
 			true,						/* CRC校验使能配置 [0: OFF, 1: ON] */
