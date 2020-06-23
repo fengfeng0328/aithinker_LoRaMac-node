@@ -135,9 +135,9 @@ extern "C"
 #define RFLR_OPMODE_SYNTHESIZER_TX                  0x02
 #define RFLR_OPMODE_TRANSMITTER                     0x03
 #define RFLR_OPMODE_SYNTHESIZER_RX                  0x04
-#define RFLR_OPMODE_RECEIVER                        0x05
+#define RFLR_OPMODE_RECEIVER                        0x05 // 连续接收
 // LoRa specific modes
-#define RFLR_OPMODE_RECEIVER_SINGLE                 0x06
+#define RFLR_OPMODE_RECEIVER_SINGLE                 0x06 // 单包接收
 #define RFLR_OPMODE_CAD                             0x07
 
 /*!

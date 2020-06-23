@@ -232,7 +232,7 @@ void SX1276Init( RadioEvents_t *events )
     TimerInit( &RxTimeoutTimer, SX1276OnTimeoutIrq );		/* 接收超时定时器 */
     TimerInit( &RxTimeoutSyncWord, SX1276OnTimeoutIrq );	/* 接收同步字超时定时器 */
 
-    SX1276Reset( );			/* SX1276复位 */
+    SX1276Reset( );			/* SX1276复位 [通过控制SX1276复位引脚控制] */
 
     RxChainCalibration( );	/* SX1276接收校准，一般复位后调用该函数 */
 
@@ -363,7 +363,7 @@ static void RxChainCalibration( void )
     SX1276Write( REG_IMAGECAL, ( SX1276Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_MASK ) | RF_IMAGECAL_IMAGECAL_START );
     // Set to 1 while the Image and RSSI calibration are running.
 	// Toggles back to 0 when the process is completed
-    while( ( SX1276Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_RUNNING ) == RF_IMAGECAL_IMAGECAL_RUNNING )
+    while( ( SX1276Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_RUNNING ) == RF_IMAGECAL_IMAGECAL_RUNNING )	/* 等待IQ和RSSI校准完成 */
     {
     }
 
@@ -991,12 +991,16 @@ void SX1276SetRx( uint32_t timeout )
         {
             if( SX1276.Settings.LoRa.IqInverted == true )
             {
+            	/* I and Q signals are inverted [RX ON] */
                 SX1276Write( REG_LR_INVERTIQ, ( ( SX1276Read( REG_LR_INVERTIQ ) & RFLR_INVERTIQ_TX_MASK & RFLR_INVERTIQ_RX_MASK ) | RFLR_INVERTIQ_RX_ON | RFLR_INVERTIQ_TX_OFF ) );
+                /* Optimize for inverted IQ [ON] */
                 SX1276Write( REG_LR_INVERTIQ2, RFLR_INVERTIQ2_ON );
             }
             else
             {
+            	/* I and Q signals are inverted [RX OFF] */
                 SX1276Write( REG_LR_INVERTIQ, ( ( SX1276Read( REG_LR_INVERTIQ ) & RFLR_INVERTIQ_TX_MASK & RFLR_INVERTIQ_RX_MASK ) | RFLR_INVERTIQ_RX_OFF | RFLR_INVERTIQ_TX_OFF ) );
+                /* Optimize for inverted IQ [OFF] */
                 SX1276Write( REG_LR_INVERTIQ2, RFLR_INVERTIQ2_OFF );
             }
 
